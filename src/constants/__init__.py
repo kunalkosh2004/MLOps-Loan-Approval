@@ -8,9 +8,11 @@ MONGODB_URL_KEY = 'MONGODB_URL'
 
 PIPELINE_NAME:str = ""
 ARTIFACT_DIR:str = "artifact"
+CURRENT_YEAR:str = date.today().year
 
 MODEL_FILE_NAME = 'model.pkl'
 FILE_NAME:str = 'laon_data.csv'
+PREPROCESSING_OBJECT_FILE_NAME = "preprocessing.pkl"
 
 TARGET_COLUMN = 'loan_status'
 TRAIN_FILE_NAME:str = 'train.csv'
@@ -33,3 +35,10 @@ Data Validation related constant start with DATA_INGESTION VAR NAME
 """
 DATA_VALIDATION_DIR_NAME:str = 'data_validation'
 DATA_VALIDATION_REPORT_FILE_NAME:str = 'report.yaml'
+
+"""
+Data Transformation related constant start with DATA_INGESTION VAR NAME
+"""
+DATA_TRANSFORMATION_DIR_NAME:str = 'data_transformation'
+DATA_TRANSFORMATION_TRANSFORMED_DATA_DIR:str = 'transformed'
+DATA_TRANSFORMATION_TRANSFORMED_OBJECT_DIR:str = 'transformed_object'
