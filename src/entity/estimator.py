@@ -1,6 +1,6 @@
 import sys
 
-import pandas as dp
+import pandas as pd
 from pandas import DataFrame
 from sklearn.pipeline import Pipeline
 
@@ -17,7 +17,7 @@ class TargetValueMapping:
         mapping_response = self._asdict()
         return dict(zip(mapping_response.values(),mapping_response.key()))
 
-def MyModel:
+class MyModel:
     def __init__(self, preprocessing_object: Pipeline, trained_model_object: object):
         """
         :param preprocessing_object: Input Object of preprocesser
