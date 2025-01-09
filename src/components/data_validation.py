@@ -8,7 +8,7 @@ from pandas import DataFrame
 from src.logger import logging
 from src.exception import MyException
 from src.utils.main_utils import read_yaml_file
-from src.constants import SCHEMA_FILE_PATH
+from src.constants import SCHEMA_FILE_PATH,TARGET_COLUMN
 from src.entity.config_entity import DataValidationConfig, DataIngestionConfig
 from src.entity.artifact_entity import DataValidationArtifact, DataIngestionArtifact
 
@@ -89,34 +89,22 @@ class DataValidation:
         try:
             validation_err_msg = ""
             logging.info("Starting Data Validation")
-            train_df,test_df = (DataValidation.read_data(file_path = self.data_ingestion_artifact.training_file_path),
-                                DataValidation.read_data(file_path = self.data_ingestion_artifact.testing_file_path))
+            df = DataValidation.read_data(file_path = self.data_ingestion_artifact.feature_store_file_path)
             
             # Checking col len of dataframe for train/test df
-            status = self.validate_number_of_columns(dataframe = train_df)
+            status = self.validate_number_of_columns(dataframe = df)
             if not status:
-                validation_err_msg +=f"Columns are missing in train_df. "
+                validation_err_msg +=f"Columns are missing in df. "
             else:
-                logging.info(f"All required columns are present in train_df: {status}")
-            
-            status = self.validate_number_of_columns(dataframe = test_df)
-            if not status:
-                validation_err_msg +=f"Columns are missing in test_df. "
-            else:
-                logging.info(f"All required columns are present in test_df: {status}")
+                logging.info(f"All required columns are present in df: {status}")
             
             # Checking existance of columns in dataframe for train/test df
-            status = self.is_column_exist(dataframe = train_df)
+            status = self.is_column_exist(dataframe = df)
             if not status:
-                validation_err_msg +=f"Columns are missing in train_df. "
+                validation_err_msg +=f"Columns are missing in df. "
             else:
-                logging.info(f"All required columns are present in train_df: {status}")
+                logging.info(f"All required columns are present in df: {status}")
             
-            status = self.is_column_exist(dataframe = test_df)
-            if not status:
-                validation_err_msg +=f"Columns are missing in test_df. "
-            else:
-                logging.info(f"All required columns are present in test_df: {status}")
             
             validation_status = len(validation_err_msg)==0
             

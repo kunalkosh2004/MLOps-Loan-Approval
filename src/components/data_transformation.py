@@ -9,7 +9,7 @@ from sklearn.pipeline import Pipeline
 
 from src.logger import logging
 from src.exception import MyException
-from src.entity.config_entity import DataTransformationConfig
+from src.entity.config_entity import DataTransformationConfig,DataIngestionConfig
 from src.entity.artifact_entity import DataTransformationArtifact, DataIngestionArtifact, DataValidationArtifact
 from src.constants import TARGET_COLUMN, SCHEMA_FILE_PATH,CURRENT_YEAR
 from src.utils.main_utils import save_object, save_numpy_array_data, read_yaml_file
@@ -77,41 +77,31 @@ class DataTransformation:
             logging.info("Data Transformation Started")
             if not self.data_validation_artifact.validation_status:
                 raise Exception(self.data_validation_artifact.message)
-            
-            train_df = self.read_data(file_path = self.data_ingestion_artifact.training_file_path)
-            test_df = self.read_data(file_path = self.data_ingestion_artifact.testing_file_path)
+
+            df = self.read_data(file_path = DataIngestionConfig.feature_store_file_path)
             logging.info("Train and test data are loaded")
             
-            input_feature_train_df = train_df.drop(columns=[TARGET_COLUMN],axis=1)
-            target_feature_train_df = train_df[TARGET_COLUMN]
+            input_feature_df = df.drop(columns=[TARGET_COLUMN],axis=1)
+            target_feature_df = df[TARGET_COLUMN]
             
-            input_feature_test_df = test_df.drop(columns=[TARGET_COLUMN],axis=1)
-            target_feature_test_df = test_df[TARGET_COLUMN]
             logging.info("Input ans Target columns defines for both train and test df.")
             
             logging.info("Starting Data Transformation")
             preprocessor = self.get_data_transformer_object()
             logging.info("Got the preprocessor object")
             
-            logging.info("Initializing transformation for Training-data")
-            input_feature_train_arr = preprocessor.fit_transform(input_feature_train_df)
+            logging.info("Initializing transformation for input_feature")
+            input_feature_arr = preprocessor.fit_transform(input_feature_df)
             
-            logging.info("Initializing transformation for Testing-data")
-            input_feature_test_arr = preprocessor.transform(input_feature_test_df)
             
             logging.info("Applying SMOOTEENN for handling imbalanced dataset")
             smt = SMOTEENN(sampling_strategy = 'minority')
-            input_feature_train_final, target_feature_train_final = smt.fit_resample(
-                input_feature_train_arr,target_feature_train_df
+            input_feature_final, target_feature_final = smt.fit_resample(
+                input_feature_arr,target_feature_df
             )
             
-            input_feature_test_final, target_feature_test_final = smt.fit_resample(
-                input_feature_test_arr,target_feature_test_df
-            )
             logging.info("SMOTEENN applied to train-test df.")
-            
-            train_arr = np.c_[input_feature_train_final,np.array(target_feature_train_final)]
-            test_arr = np.c_[input_feature_test_final,np.array(target_feature_test_final)]
+
             logging.info("Feature-target concatenation done for train-test df.")
             
             save_object(obj=preprocessor, file_path = self.data_transformation_config.transformed_object_file_path)
@@ -119,15 +109,15 @@ class DataTransformation:
             dir_name = os.path.join(self.data_transformation_config.data_transformation_transformed_dir)
             os.makedirs(dir_name, exist_ok=True)
             
-            save_numpy_array_data(file_path=self.data_transformation_config.transformed_train_file_path,array=train_arr)
-            save_numpy_array_data(file_path=self.data_transformation_config.transformed_test_file_path,array=test_arr)
+            save_numpy_array_data(file_path=self.data_transformation_config.input_feature_final_path,array=input_feature_final)
+            save_numpy_array_data(file_path=self.data_transformation_config.target_feature_final_path,array=target_feature_final)
             logging.info("Saving transformation object and transformed files.")
 
             logging.info("Data transformation completed successfully")
             data_transformation_artifact = DataTransformationArtifact(
-                transformed_train_file_path = self.data_transformation_config.transformed_train_file_path,
-                transformed_test_file_path = self.data_transformation_config.transformed_test_file_path,
-                transformed_object_file_path = self.data_transformation_config.transformed_object_file_path
+                transformed_object_file_path = self.data_transformation_config.transformed_object_file_path,
+                input_feature_final_path = self.data_transformation_config.input_feature_final_path,
+                target_feature_final_path = self.data_transformation_config.target_feature_final_path
             )
             return data_transformation_artifact
         except Exception as e:

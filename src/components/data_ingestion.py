@@ -90,9 +90,9 @@ class DataIngestion:
             logging.info("Performed train_test_split om the dataset")
             
             logging.info("Exited from initaite_data_ingestion of Data_Ingestion class")
-            
             data_ingestion_artifact = DataIngestionArtifact(training_file_path = self.data_ingestion_config.training_file_path,
-                                                            testing_file_path = self.data_ingestion_config.testing_file_path)
+                                                            testing_file_path = self.data_ingestion_config.testing_file_path,
+                                                            feature_store_file_path = self.data_ingestion_config.feature_store_file_path)
             logging.info(f"Data ingestion artifact: {data_ingestion_artifact}")
             return data_ingestion_artifact
         except Exception as e:

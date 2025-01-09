@@ -4,6 +4,7 @@ from typing import Tuple
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score, precision_score, f1_score, recall_score
+from sklearn.model_selection import train_test_split
 
 
 from src.logger import logging
@@ -27,7 +28,7 @@ class ModelTrainer:
         except Exception as e:
             raise MyException(e,sys)
         
-    def get_model_object_and_report(self, train_arr: np.array, test_arr: np.array) -> Tuple[object,object]:
+    def get_model_object_and_report(self, input_feature: np.array, target_feature: np.array) -> Tuple[object,object]:
         """
         Method Name :   get_model_object_and_report
         Description :   This function trains a KNeighborsClassifier with specified parameters
@@ -39,7 +40,9 @@ class ModelTrainer:
             logging.info("Training KNeighborsClassifier with specified params")
             
             # splitting the train and test data into feature and target column
-            x_train, y_train, x_test, y_test = train_arr[:,:-1], train_arr[:,-1], test_arr[:,:-1], test_arr[:,-1]
+            x_train, x_test, y_train, y_test = train_test_split(input_feature,target_feature,
+                                                                test_size=self.model_trainer_config.train_test_split_ratio,
+                                                                random_state=self.model_trainer_config.model_trainer_random_state)
             logging.info("train-test split done")
             
             # Initializing KNeighborsClassifier with specied params
@@ -54,12 +57,14 @@ class ModelTrainer:
             logging.info("Model Trained")
             
             # Doing Predictions and evaluations
+            y_pred_train = clf.predict(x_train)
             y_pred = clf.predict(x_test)
             accuracy= accuracy_score(y_test,y_pred)
             f1 = f1_score(y_test,y_pred)
             precision = precision_score(y_test,y_pred)
             recall = recall_score(y_test,y_pred)
-            print(f"Accuracy Score:- {accuracy}")
+            print(f"Accuracy Score train data:- {accuracy_score(y_pred_train,y_train)}")
+            print(f"Accuracy Score test data:- {accuracy}")
             
             # Creating Metric artifact
             metric_artifact = ClassificationMetricArtifact(accuracy_score=accuracy,f1_score=f1,
@@ -80,13 +85,15 @@ class ModelTrainer:
         try:
             print("------------------------------------------------------------------------------------------------")
             print("Starting Model Trainer Component")
-            # Load Transformed train and test data
-            train_arr = load_numpy_array_data(file_path = self.data_transformation_artifact.transformed_train_file_path)
-            test_arr = load_numpy_array_data(file_path = self.data_transformation_artifact.transformed_test_file_path)
+            # Load Transformed input_feature and target_feature
+            input_feature = load_numpy_array_data(file_path = self.data_transformation_artifact.input_feature_final_path)
+            target_feature = load_numpy_array_data(file_path = self.data_transformation_artifact.target_feature_final_path)
             logging.info("train-test data loaded")
+            arr = np.c_[input_feature,target_feature]
+            train_arr,test_arr = train_test_split(arr,test_size=self.model_trainer_config.train_test_split_ratio)
             
             # Train model and get metrics
-            trained_model, model_artifact = self.get_model_object_and_report(train_arr = train_arr, test_arr = test_arr)
+            trained_model, model_artifact = self.get_model_object_and_report(input_feature = input_feature, target_feature = target_feature)
             logging.info("Model object and artifact loaded")
             
             # load_preprocessing object

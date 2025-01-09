@@ -4,6 +4,7 @@ from dataclasses import dataclass
 class DataIngestionArtifact:
     training_file_path:str
     testing_file_path:str
+    feature_store_file_path:str
 
 @dataclass
 class DataValidationArtifact:
@@ -13,9 +14,9 @@ class DataValidationArtifact:
     
 @dataclass
 class DataTransformationArtifact:
-    transformed_train_file_path:str
-    transformed_test_file_path:str
     transformed_object_file_path:str
+    input_feature_final_path:str
+    target_feature_final_path:str
     
 @dataclass
 class ClassificationMetricArtifact:
